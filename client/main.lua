@@ -519,36 +519,30 @@ RegisterNUICallback("NUIFocusOff",function()
     closeInventory()
 end)
 
-RegisterNUICallback("GetNearPlayers", function(data, cb)
+RegisterNUICallback("GetSurroundingPlayers", function(data, cb)
     local coords = GetEntityCoords(PlayerPedId(), true)
     local players = {}
 
-
     for _, player in ipairs(GetActivePlayers()) do
-		local ped = GetPlayerPed(player)
-		local targetCoords = GetEntityCoords(target)
-        local distance = #(vector3(coords.x, coords.y, coords.z) - targetCoords)
+        if player ~= PlayerId() then
+            local ped = GetPlayerPed(player) 
+            local targetCoords = GetEntityCoords(ped)
+            local distance = #(vector3(targetCoords.x, targetCoords.y, targetCoords.z) - coords)
 
-		if distance <= 3.0 then
-			table.insert(players, {
-                name = GetPlayerName(player),
-                id = GetPlayerServerId(player)
-            })
-		end
+            print(distance)
+            if distance <= 3.0 then
+                table.insert(players, {
+                    name = GetPlayerName(player),
+                    id = GetPlayerServerId(player)
+                })
+            end
+        end
 	end
+
     SendNUIMessage({
         action = "nearPlayers",
         players = players
     })
-
-    if #players then
-        SendNUIMessage({
-            action = "nearPlayers",
-            players = players
-        })
-    else
-        exports['mythic_notify']:SendAlert('error', 'No Players Nearby')
-    end
 
     cb("ok")
 end)
@@ -614,30 +608,7 @@ RegisterNUICallback("DropItem", function(data, cb)
 end)
 
 RegisterNUICallback("GiveItem", function(data, cb)
-    local playerPed = PlayerPedId()
-    local players, nearbyPlayer = exports['mythic_base']:getPlayersInArea(GetEntityCoords(playerPed), 3.0)
-    local foundPlayer = true
-    --[[for i = 1, #players, 1 do
-        if players[i] ~= PlayerId() then
-            if GetPlayerServerId(players[i]) == data.player then
-                foundPlayer = true
-            end
-        end
-    end]]
-    
-
-    --[[if foundPlayer then
-        local count = tonumber(data.number)
-
-        if data.item.type == "item_weapon" then
-            count = GetAmmoInPedWeapon(PlayerPedId(), GetHashKey(data.item.itemid))
-        end
-
-        TriggerServerEvent("esx:giveInventoryItem", data.player, data.item.type, data.item.itemid, count)
-        Wait(500)
-        loadPlayerInventory()
-    else
-        exports['mythic_notify']:SendAlert('error', 'No Player Nearby')
-    end]]
+    print(json.encode(data))
+    TriggerServerEvent('mythic_inventory:server:GiveItem', data.target, data.item, data.count)
     cb("ok")
 end)

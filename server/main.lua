@@ -279,6 +279,26 @@ AddEventHandler('mythic_inventory:server:SwapItems', function(originOwner, origi
 	end)
 end)
 
+RegisterServerEvent('mythic_inventory:server:GiveItem')
+AddEventHandler('mythic_inventory:server:GiveItem', function(target, item, count)
+    local src = source
+	local mPlayer = exports['mythic_base']:FetchComponent('Fetch'):Source(src)
+	local char = mPlayer:GetData('character')
+	local tPlayer = exports['mythic_base']:FetchComponent('Fetch'):Source(target)
+
+	if tPlayer ~= nil then
+		local tChar = tPlayer:GetData('character')
+
+		Citizen.CreateThread(function()
+			print(tChar:GetData('id'))
+			char:giveItem(tChar:GetData('id'), item.slot, count, function()
+				TriggerClientEvent('mythic_inventory:client:RefreshInventory', mPlayer:GetData('source'))
+				TriggerClientEvent('mythic_inventory:client:RefreshInventory', tPlayer:GetData('source'))
+			end)
+		end)
+	end
+end)
+
 RegisterServerEvent('mythic_inventory:server:RemoveItem')
 AddEventHandler('mythic_inventory:server:RemoveItem', function(uId, qty, disableNotif)
     local src = source

@@ -9,6 +9,7 @@ var secondItems = new Array();
 var dragging = false
 var origDrag = null;
 var draggingItem = null;
+var givingItem = null;
 var errorHighlightTimer = null;
 var mousedown = false;
 var docWidth = document.documentElement.clientWidth;
@@ -61,23 +62,17 @@ window.addEventListener("message", function (event) {
             $(".info-div").html(event.data.text);
             break;
         case 'nearPlayers':
-            $('.near-players-list').html('');
-
-            $.each(event.data.players, function(index, player) {
-                $('.near-players-list').append(`<div class="player" data-id="${player.id}">${player.name}</div>`)
-            });
-
-            $('.near-players-list').fadeIn();
-    
-            $(".nearbyPlayerButton").click(function () {
-                $("#dialog").dialog("close");
-                player = $(this).data("player");
-                $.post("http://mythic_inventory/GiveItem", JSON.stringify({
-                    player: player,
-                    item: event.data.item,
-                    number: parseInt($("#count").val())
-                }));
-            });
+            if (event.data.players.length > 0) {
+                successAudio.play();
+                $('.near-players-wrapper').find('.popup-body').html('');
+                $.each(event.data.players, function(index, player) {
+                    $('.near-players-list .popup-body').append(`<div class="player" data-id="${player.id}">${player.id} - ${player.name}</div>`);
+                });
+                $('.near-players-wrapper').fadeIn();
+            } else {
+                DisplayMoveError(origDrag, origDrag, 'Attempted To Give An Item To A Nearest Player, But No Players Are Around.');
+            }
+            EndDragging();
             break;
         case 'itemUsed':
             ItemUsed(event.data.alerts);
@@ -109,6 +104,7 @@ function EndDragging() {
 function closeInventory() {
     EndDragging();
     $.post("http://mythic_inventory/NUIFocusOff", JSON.stringify({}));
+    $('.near-players-wrapper').hide();
 }
 
 function inventorySetup(invOwner, items, money) {
@@ -301,16 +297,11 @@ $(document).ready(function () {
             }
 
             if (itemData.canRemove) {
-                InventoryLog(`Giving ${dropCount} ${itemData.label} To Nearby Player`);
-                $.post("http://mythic_inventory/GetNearPlayers", JSON.stringify({
-                    item: itemData,
-                    qty: dropCount
-                }));
-                successAudio.play();
+                $.post("http://mythic_inventory/GetSurroundingPlayers", JSON.stringify({}));
+                givingItem = itemData;
             } else {
                 failAudio.play();
             }
-            EndDragging();
         }
     });
 
@@ -426,6 +417,41 @@ $(document).ready(function () {
             $(this).val('0');
         } else {
             $(this).val(parseInt($(this).val()))
+        }
+    });
+
+    $('.exit-popup').on('click', function() {
+        givingItem = null;
+        $('.near-players-wrapper').fadeOut('normal').promise().then(function() {
+            $(this).find('.popup-body').html('');
+        });
+    });
+
+    $('.popup-body').on('click', '.player', function() {
+        if (givingItem != null) {
+            let target = $(this).data('id');
+            let count = parseInt($("#count").val())
+
+            if (count === 0 || count > givingItem.qty) {
+                count = givingItem.qty
+            } 
+
+            InventoryLog(`Giving ${count} ${givingItem.label} To Nearby Player With Server ID ${target}`);
+            $.post("http://mythic_inventory/GiveItem", JSON.stringify({
+                target: target,
+                item: givingItem,
+                count: count
+            }), function(status){
+                if (status) {
+                    $('.near-players-wrapper').fadeOut();
+
+                    if (count == givingItem.qty) {
+                        ResetSlotToEmpty(givingItem.slot);
+                    }
+
+                    givingItem = null;
+                }
+            });
         }
     });
 });
@@ -761,37 +787,6 @@ function ActionBarUsed(index) {
         }, 1000)
     }
 }
-
-$.widget('ui.dialog', $.ui.dialog, {
-    options: {
-        // Determine if clicking outside the dialog shall close it
-        clickOutside: false,
-        // Element (id or class) that triggers the dialog opening 
-        clickOutsideTrigger: ''
-    },
-    open: function () {
-        var clickOutsideTriggerEl = $(this.options.clickOutsideTrigger),
-            that = this;
-        if (this.options.clickOutside) {
-            // Add document wide click handler for the current dialog namespace
-            $(document).on('click.ui.dialogClickOutside' + that.eventNamespace, function (event) {
-                var $target = $(event.target);
-                if ($target.closest($(clickOutsideTriggerEl)).length === 0 &&
-                    $target.closest($(that.uiDialog)).length === 0) {
-                    that.close();
-                }
-            });
-        }
-        // Invoke parent open method
-        this._super();
-    },
-    close: function () {
-        // Remove document wide click handler for the current dialog
-        $(document).off('click.ui.dialogClickOutside' + this.eventNamespace);
-        // Invoke parent close method 
-        this._super();
-    },
-});
 
 function ClearLog() {
     $('.inv-log').html('');

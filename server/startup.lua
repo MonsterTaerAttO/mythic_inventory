@@ -20,6 +20,7 @@ InvSlots = {--[[
 Citizen.CreateThread(function()
     Citizen.Wait(1000)
     exports['ghmattimysql']:execute('DELETE FROM inventory_items WHERE type IN (0, 2, 3, 6, 7, 8, 9)')
+    exports['ghmattimysql']:execute('DELETE FROM inventory_items WHERE qty <= 0')
 
     exports['ghmattimysql']:execute('SELECT * FROM entity_types', {}, function(entities)
         if entities[1] ~= nil then
