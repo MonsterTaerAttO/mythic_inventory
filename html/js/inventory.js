@@ -244,7 +244,7 @@ $(document).ready(function () {
                     $("#use").addClass("disabled");
                 }
 
-                if (!itemData.canRemove || ($(this).parent().data('invOwner') == $('#inventoryTwo').data('invOwner') && $(this).parent().data('invOwner').type === 2)) {
+                if (!itemData.canRemove || ($(this).parent().data('invOwner') == $('#inventoryTwo').data('invOwner'))) {
                     $("#drop").addClass("disabled");
                     $("#give").addClass("disabled");
                 }
@@ -259,22 +259,28 @@ $(document).ready(function () {
     });
 
     $('#use').click(function (event, ui) {
-        if(dragging) {
-            itemData = $(draggingItem).find('.item').data("item");
-            if (itemData.usable) {
-                InventoryLog(`Using ${itemData.label}`);
-                $.post("http://mythic_inventory/UseItem", JSON.stringify({
-                    owner: $(draggingItem).parent().data('invOwner'),
-                    item: itemData
-                }), function(closeUi) {
-                    if(closeUi) {
-                        closeInventory();
-                    }
-                });
-                successAudio.play();
-            } else {
-                failAudio.play();
+        console.log($(this).hasClass('disabled'));
+        if (!$(this).hasClass('disabled')) {
+            if(dragging) {
+                itemData = $(draggingItem).find('.item').data("item");
+                if (itemData.usable) {
+                    InventoryLog(`Using ${itemData.label}`);
+                    $.post("http://mythic_inventory/UseItem", JSON.stringify({
+                        owner: $(draggingItem).parent().data('invOwner'),
+                        item: itemData
+                    }), function(closeUi) {
+                        if(closeUi) {
+                            closeInventory();
+                        }
+                    });
+                    successAudio.play();
+                } else {
+                    failAudio.play();
+                }
+                EndDragging();
             }
+        } else {
+            DisplayMoveError(origDrag, origDrag, 'Using Disabled');
             EndDragging();
         }
     });
@@ -288,20 +294,25 @@ $(document).ready(function () {
     });
 
     $('#give').click(function (event, ui) {
-        if(dragging) {
-            itemData = $(draggingItem).find('.item').data("item");
-            let dropCount = parseInt($("#count").val());
-
-            if (dropCount === 0 || dropCount > itemData.qty) {
-                dropCount = itemData.qty
+        if (!$(this).hasClass('disabled')) {
+            if(dragging) {
+                itemData = $(draggingItem).find('.item').data("item");
+                let dropCount = parseInt($("#count").val());
+    
+                if (dropCount === 0 || dropCount > itemData.qty) {
+                    dropCount = itemData.qty
+                }
+    
+                if (itemData.canRemove) {
+                    $.post("http://mythic_inventory/GetSurroundingPlayers", JSON.stringify({}));
+                    givingItem = itemData;
+                } else {
+                    failAudio.play();
+                }
             }
-
-            if (itemData.canRemove) {
-                $.post("http://mythic_inventory/GetSurroundingPlayers", JSON.stringify({}));
-                givingItem = itemData;
-            } else {
-                failAudio.play();
-            }
+        } else {
+            DisplayMoveError(origDrag, origDrag, 'Giving Disabled');
+            EndDragging();
         }
     });
 
@@ -314,24 +325,29 @@ $(document).ready(function () {
     });
 
     $('#drop').click(function (event, ui) {
-        if(dragging) {
-            itemData = $(draggingItem).find('.item').data("item");
-            let dropCount = parseInt($("#count").val());
-
-            if (dropCount === 0 || dropCount > itemData.qty) {
-                dropCount = itemData.qty
+        if (!$(this).hasClass('disabled')) {
+            if(dragging) {
+                itemData = $(draggingItem).find('.item').data("item");
+                let dropCount = parseInt($("#count").val());
+    
+                if (dropCount === 0 || dropCount > itemData.qty) {
+                    dropCount = itemData.qty
+                }
+    
+                if (itemData.canRemove) {
+                    InventoryLog(`Dropping ${dropCount} ${itemData.label} On Ground`);
+                    $.post("http://mythic_inventory/DropItem", JSON.stringify({
+                        item: itemData,
+                        qty: dropCount
+                    }));
+                    successAudio.play();
+                } else {
+                    failAudio.play();
+                }
+                EndDragging();
             }
-
-            if (itemData.canRemove) {
-                InventoryLog(`Dropping ${dropCount} ${itemData.label} On Ground`);
-                $.post("http://mythic_inventory/DropItem", JSON.stringify({
-                    item: itemData,
-                    qty: dropCount
-                }));
-                successAudio.play();
-            } else {
-                failAudio.play();
-            }
+        } else {
+            DisplayMoveError(origDrag, origDrag, 'Droping Disabled');
             EndDragging();
         }
     });
