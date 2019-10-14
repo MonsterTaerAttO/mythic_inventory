@@ -74,9 +74,12 @@ function GetPlayerInventory(source)
 					sMeta = json.decode(v["staticMeta"])
 				end
 
+				print(v['unique'])
+
 				table.insert(itemsObject, {
 					id = v["id"],
 					itemId = v["itemId"],
+					description = v["description"],
 					qty = v["qty"],
 					slot = v["slot"],
 					label = v["label"],
@@ -338,6 +341,7 @@ AddEventHandler('mythic_inventory:server:GetSecondaryInventory', function(source
 				table.insert(itemsObject, {
 					id = v['id'],
 					itemId = v['itemId'],
+					description = v["description"],
 					qty = v['qty'],
 					slot = v['slot'],
 					label = v['label'],

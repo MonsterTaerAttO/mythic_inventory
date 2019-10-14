@@ -110,12 +110,12 @@ function closeInventory() {
 function inventorySetup(invOwner, items, money) {
     setupPlayerSlots();
     $('#player-inv-label').html(firstTier.label);
-    $('#player-inv-id').html(firstTier.label.toLowerCase() + '-' + invOwner.owner);
-    invOwner.label = firstTier.label.toLowerCase() + '-' + invOwner.owner;
+    $('#player-inv-id').html(`${firstTier.label.toLowerCase()} - ${invOwner.owner}`);
+    invOwner.label = `${firstTier.label.toLowerCase()} - ${invOwner.owner}`;
     $('#inventoryOne').data('invOwner', invOwner);
 
-    $('#cash').html('<img src="img/cash.png" class="moneyIcon"> $' + formatCurrency(money.cash));
-    $('#bank').html('<img src="img/bank.png" class="moneyIcon"> $' + formatCurrency(money.bank));
+    $('#cash').html(`<img src="img/cash.png" class="moneyIcon"> $${formatCurrency(money.cash)}`);
+    $('#bank').html(`<img src="img/bank.png" class="moneyIcon"> $${formatCurrency(money.bank)}`);
 
     firstUsed = 0;
     $.each(items, function (index, item) {
@@ -137,8 +137,8 @@ function inventorySetup(invOwner, items, money) {
 function secondInventorySetup(invOwner, items) {
     setupSecondarySlots(invOwner);
     $('#other-inv-label').html(secondTier.label);
-    $('#other-inv-id').html(secondTier.label.toLowerCase() + '-' + invOwner.owner);
-    invOwner.label = secondTier.label.toLowerCase() + '-' + invOwner.owner;
+    $('#other-inv-id').html(`${secondTier.label.toLowerCase()} - ${invOwner.owner}`);
+    invOwner.label = `${secondTier.label.toLowerCase()} - ${invOwner.owner}`;
     $('#inventoryTwo').data('invOwner', invOwner);
     secondUsed = 0;
     $.each(items, function (index, item) {
@@ -175,14 +175,32 @@ function setupSecondarySlots(owner) {
         $('#inventoryTwo').find('.slot-template').data('slot', i);
         $('#inventoryTwo').find('.slot-template').data('inventory', 'inventoryTwo');
 
-        if (owner.type === 2 || owner.type === 3 || owner.type === 6 || owner.type === 7 || owner.type === 17) {
-            $('#inventoryTwo').find('.slot-template').addClass('temporary');
-        } else if (owner.type === 4 || owner.type === 5 || owner.type === 8 || owner.type === 9 || owner.type === 10 || owner.type === 11 || owner.type === 12 || owner.type === 13 || owner.type === 14 || owner.type === 15) {
-            $('#inventoryTwo').find('.slot-template').addClass('storage');
-        } else if (owner.type === 1) {
-            $('#inventoryTwo').find('.slot-template').addClass('player');
-        } else if (owner.type === 16) {
-            $('#inventoryTwo').find('.slot-template').addClass('evidence');
+        switch(owner.type) {
+            case 1:
+                $('#inventoryTwo').find('.slot-template').addClass('player');
+                break;
+            case 2:
+            case 3:
+            case 6:
+            case 7:
+            case 17:
+                $('#inventoryTwo').find('.slot-template').addClass('temporary');
+                break;
+            case 4:
+            case 5:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
+                $('#inventoryTwo').find('.slot-template').addClass('storage');
+                break;
+            case 16:
+                $('#inventoryTwo').find('.slot-template').addClass('evidence');
+                break;
         }
 
         $('#inventoryTwo').find('.slot-template').removeClass('slot-template');
@@ -365,7 +383,7 @@ $(document).ready(function () {
         if(itemData !== undefined) {
             $('.tooltip-div').find('.tooltip-name').html(itemData.label);
 
-            if(itemData.unique === 0) {
+            if(!itemData.unique) {
                 if(itemData.stackable) {
                     $('.tooltip-div').find('.tooltip-uniqueness').html("Not Unique - Stack Max(" + itemData.max + ")");
                 } else {
@@ -375,26 +393,33 @@ $(document).ready(function () {
                 $('.tooltip-div').find('.tooltip-uniqueness').html("Unique (" + itemData.max + ")");
             }
 
-            if(itemData.staticMeta !== undefined || itemData.staticMeta !== "") {
+            if(itemData.type === 1 || itemData.itemId === 'license') {
                 if(itemData.type === 1) {
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Registered Owner</div> : <div class="meta-val">' + itemData.staticMeta.owner + '</div></div>');
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Registered Owner</div> : <div class="meta-val">${itemData.staticMeta.owner}</div></div>`);
                 } else if(itemData.itemId === 'license') {
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Name</div> : <div class="meta-val">' + itemData.staticMeta.name + '</div></div>');
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Issued On</div> : <div class="meta-val">' + itemData.staticMeta.issuedDate + '</div></div>');
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Height</div> : <div class="meta-val">' + itemData.staticMeta.height + '</div></div>');
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Date of Birth</div> : <div class="meta-val">' + itemData.staticMeta.dob + '</div></div>');
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Phone Number</div> : <div class="meta-val">' + itemData.staticMeta.phone + '</div></div>');
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Citizen ID</div> : <div class="meta-val">' + itemData.staticMeta.id + '-' + itemData.staticMeta.user + '</div></div>');
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Name</div> : <div class="meta-val">${itemData.staticMeta.name}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Issued On</div> : <div class="meta-val">${itemData.staticMeta.issuedDate}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Height</div> : <div class="meta-val">${itemData.staticMeta.height}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Date of Birth</div> : <div class="meta-val">${itemData.staticMeta.dob}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Phone Number</div> : <div class="meta-val">${itemData.staticMeta.phone}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Citizen ID</div> : <div class="meta-val">${itemData.staticMeta.id} - ${itemData.staticMeta.user}</div></div>`);
 
                     if(itemData.staticMeta.endorsements !== undefined) {
-                        $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key">Endorsement</div> : <div class="meta-val">' + itemData.staticMeta.endorsements + '</div></div>');
+                        $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Endorsement</div> : <div class="meta-val">${itemData.staticMeta.endorsements}</div></div>`);
                     }
-                } else if(itemData.itemId === 'gold') {
-                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-entry"><div class="meta-key"></div> : <div class="meta-val">This Bar Has A Serial Number Engraved Into It Registered To San Andreas Federal Reserve</div></div>');
+
+                    if (itemData.description != null && itemData.description != '') {
+                        $('.tooltip-div').find('.tooltip-meta').append(`<hr /><div class="meta-desc">${itemData.description}</div>`);
+                    } 
                 }
             } else {
-                $('.tooltip-div').find('.tooltip-meta').html("This Item Has No Information");
+                if (itemData.description != null && itemData.description != '') {
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-desc">${itemData.description}</div>`);
+                } else {
+                    $('.tooltip-div').find('.tooltip-meta').append('<div class="meta-desc">This Item Has No Information</div>');
+                }
             }
+
             $('.tooltip-div').show();
         }
     });
@@ -695,7 +720,7 @@ function ResetSlotToEmpty(slot) {
 
 function AddItemToSlot(slot, data) {
     slot.find('.empty-item').removeClass('empty-item');
-    slot.find('.item').css('background-image', 'url(\'img/items/' + data.itemId + '.png\')'); 
+    slot.find('.item').css('background-image', `url(\'img/items/${data.itemId}.png\')`); 
     slot.find('.item-count').html(data.qty);
     slot.find('.item-name').html(data.label);
     slot.find('.item').data('item', data);
@@ -716,7 +741,7 @@ function ItemUsed(alerts) {
             $.each(alerts, function(index, data) {
                 $('#use-alert').append(`<div class="slot alert-${index}""><div class="item"><div class="item-count">${data.qty}</div><div class="item-name">${data.item.label}</div></div><div class="alert-text">${data.message}</div></div>`)
                 .ready(function() {
-                    $(`.alert-${index}`).find('.item').css('background-image', 'url(\'img/items/' + data.item.itemId + '.png\')');
+                    $(`.alert-${index}`).find('.item').css('background-image', `url(\'img/items/${data.itemId}.png\')`);
                     if (data.item.slot <= 5) {
                         $(`.alert-${index}`).find('.item').append(`<div class="item-keybind">${data.item.slot}</div>`)
                     }
@@ -749,7 +774,7 @@ function ActionBar(items, timer) {
                 $(`.slot-${i}`).find('.item-count').html(items[i].qty);
                 $(`.slot-${i}`).find('.item-name').html(items[i].label);
                 $(`.slot-${i}`).find('.item-keybind').html(items[i].slot);
-                $(`.slot-${i}`).find('.item').css('background-image', 'url(\'img/items/' + items[i].itemId + '.png\')');
+                $(`.slot-${i}`).find('.item').css('background-image', `url(\'img/items/${data.itemId}.png\')`);
             } else {
                 $(`.slot-${i}`).find('.item-count').html('');
                 $(`.slot-${i}`).find('.item-name').html('NONE');
@@ -769,7 +794,7 @@ function ActionBar(items, timer) {
         for (let i = 0; i < 5; i++) {
             if (items[i] != null) {
                 $('#action-bar').append(`<div class="slot slot-${i}"><div class="item"><div class="item-count">${items[i].qty}</div><div class="item-name">${items[i].label}</div><div class="item-keybind">${items[i].slot}</div></div></div>`);
-                $(`.slot-${i}`).find('.item').css('background-image', 'url(\'img/items/' + items[i].itemId + '.png\')');
+                $(`.slot-${i}`).find('.item').css('background-image', `url(\'img/items/${data.itemId}.png\')`);
             } else {
                 $('#action-bar').append(`<div class="slot slot-${i}" data-empty="true"><div class="item"><div class="item-count"></div><div class="item-name">NONE</div><div class="item-keybind">${i + 1}</div></div></div>`);
                 $(`.slot-${i}`).find('.item').css('background-image', 'none');
