@@ -3,12 +3,12 @@ local Callbacks = nil
 AddEventHandler('mythic_base:shared:ComponentsReady', function()
 	Callbacks = exports['mythic_base']:FetchComponent('Callbacks')
 
-	Callbacks:RegisterServerCallback('mythic_inventory:server:CheckItem', function(source, event, data)
+	Callbacks:RegisterServerCallback('mythic_inventory:server:CheckItem', function(source, data, cb)
 		local char = exports['mythic_base']:FetchComponent('Fetch'):Source(source):GetData('character')
-		return CheckItems(1, char:GetData('id'), data)
+		cb(CheckItems(1, char:GetData('id'), data))
 	end)
 
-	Callbacks:RegisterServerCallback('mythic_inventory:server:GetHotkeys', function(source, event, data)
+	Callbacks:RegisterServerCallback('mythic_inventory:server:GetHotkeys', function(source, data, cb)
 		local returnVal = nil
 		returnVal = GetHotkeyItems(source, function(items)
 			returnVal = items
@@ -18,7 +18,7 @@ AddEventHandler('mythic_base:shared:ComponentsReady', function()
 			Citizen.Wait(100)
 		end
 		
-		return returnVal
+		cb(returnVal)
 	end)
 end)
 
