@@ -104,7 +104,6 @@ end
 
 RegisterNetEvent('mythic_inventory:client:ShowItemUse')
 AddEventHandler('mythic_inventory:client:ShowItemUse', function(alerts)
-    print(json.encode(alerts))
     ShowItemUse(alerts)
 end)
 
@@ -529,7 +528,6 @@ RegisterNUICallback("GetSurroundingPlayers", function(data, cb)
             local targetCoords = GetEntityCoords(ped)
             local distance = #(vector3(targetCoords.x, targetCoords.y, targetCoords.z) - coords)
 
-            print(distance)
             if distance <= 3.0 then
                 table.insert(players, {
                     name = GetPlayerName(player),
@@ -608,7 +606,6 @@ RegisterNUICallback("DropItem", function(data, cb)
 end)
 
 RegisterNUICallback("GiveItem", function(data, cb)
-    print(json.encode(data))
     TriggerServerEvent('mythic_inventory:server:GiveItem', data.target, data.item, data.count)
     cb("ok")
 end)

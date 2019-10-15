@@ -74,8 +74,6 @@ function GetPlayerInventory(source)
 					sMeta = json.decode(v["staticMeta"])
 				end
 
-				print(v['unique'])
-
 				table.insert(itemsObject, {
 					id = v["id"],
 					itemId = v["itemId"],
@@ -293,7 +291,6 @@ AddEventHandler('mythic_inventory:server:GiveItem', function(target, item, count
 		local tChar = tPlayer:GetData('character')
 
 		Citizen.CreateThread(function()
-			print(tChar:GetData('id'))
 			char:giveItem(tChar:GetData('id'), item.slot, count, function()
 				TriggerClientEvent('mythic_inventory:client:RefreshInventory', mPlayer:GetData('source'))
 				TriggerClientEvent('mythic_inventory:client:RefreshInventory', tPlayer:GetData('source'))
