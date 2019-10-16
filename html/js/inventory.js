@@ -274,7 +274,6 @@ $(document).ready(function () {
     });
 
     $('#use').click(function (event, ui) {
-        console.log($(this).hasClass('disabled'));
         if (!$(this).hasClass('disabled')) {
             if(dragging) {
                 itemData = $(draggingItem).find('.item').data("item");
@@ -509,7 +508,6 @@ $(document).ready(function () {
 });
  
 function SearchInventory(searchVal) {
-    console.log(searchVal);
     if (searchVal !== '') {
         $.each(
             $('#search')
@@ -791,8 +789,6 @@ function AddItemToSlot(slot, data) {
 var alertTimer = null;
 var hiddenCheck = null;
 function ItemUsed(alerts) {
-    console.log(JSON.stringify(alerts));
-
     clearTimeout(alertTimer);
     clearInterval(hiddenCheck);
 
