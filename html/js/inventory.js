@@ -52,7 +52,7 @@ window.addEventListener("message", function (event) {
             break;
         case 'setItems':
             firstTier = event.data.invTier;
-            inventorySetup(event.data.invOwner, event.data.itemList, event.data.money);
+            inventorySetup(event.data.invOwner, event.data.itemList);
             break;
         case 'setSecondInventoryItems':
             secondTier = event.data.invTier;
@@ -107,15 +107,12 @@ function closeInventory() {
     $('.near-players-wrapper').hide();
 }
 
-function inventorySetup(invOwner, items, money) {
+function inventorySetup(invOwner, items) {
     setupPlayerSlots();
     $('#player-inv-label').html(firstTier.label);
     $('#player-inv-id').html(`${firstTier.label.toLowerCase()} - ${invOwner.owner}`);
     invOwner.label = `${firstTier.label.toLowerCase()} - ${invOwner.owner}`;
     $('#inventoryOne').data('invOwner', invOwner);
-
-    $('#cash').html(`<img src="img/cash.png" class="moneyIcon"> $${formatCurrency(money.cash)}`);
-    $('#bank').html(`<img src="img/bank.png" class="moneyIcon"> $${formatCurrency(money.bank)}`);
 
     firstUsed = 0;
     $.each(items, function (index, item) {
@@ -393,6 +390,7 @@ $(document).ready(function () {
                 $('.tooltip-div').find('.tooltip-uniqueness').html("Unique (" + itemData.max + ")");
             }
 
+            $('.tooltip-div').find('.tooltip-meta').html('');
             if(itemData.type === 1 || itemData.itemId === 'license') {
                 if(itemData.type === 1) {
                     $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Registered Owner</div> : <div class="meta-val">${itemData.staticMeta.owner}</div></div>`);
@@ -495,7 +493,71 @@ $(document).ready(function () {
             });
         }
     });
+
+    $('#search').on('keyup keydown blur', function(e) {
+        SearchInventory($(this).val());
+    });
+
+    $('#search-reset').on('click', function() {
+        SearchInventory('');
+        $('#search').val('');
+    });
+
+    $('#count-reset').on('click', function() {
+        $('#count').val('0');
+    });
 });
+ 
+function SearchInventory(searchVal) {
+    console.log(searchVal);
+    if (searchVal !== '') {
+        $.each(
+            $('#search')
+                .parent()
+                .parent()
+                .parent()
+                .find('#inventoryOne, #inventoryTwo')
+                .children(),
+            function(index, slot) {
+                let item = $(slot).find('.item').data('item');
+
+                if (item != null) {
+                    if (
+                        item.label.toUpperCase().includes(searchVal.toUpperCase()) ||
+                        item.itemId.includes(searchVal.toUpperCase())
+                    ) {
+                        $(slot).animate({
+                            opacity: '1.0'
+                        }, { duration: 100 });
+                    } else {
+                        $(slot).animate({
+                            opacity: '0.25'
+                        }, { duration: 100 });
+                    }
+                } else {
+                    $(slot).animate({
+                        opacity: '0.25'
+                    }, { duration: 100 });
+                }
+            }
+        );
+
+    } else {
+        $.each(
+            $('#search')
+                .parent()
+                .parent()
+                .parent()
+                .find('#inventoryOne, #inventoryTwo')
+                .children(),
+            function(index, slot) {
+                $(slot).animate({
+                    opacity: '1.0'
+                }, { duration: 100 });
+            }
+        );
+    }
+}
 
 function AttemptDropInEmptySlot(origin, destination, moveQty) {
     let result = ErrorCheck(origin, destination, moveQty)
@@ -729,6 +791,8 @@ function AddItemToSlot(slot, data) {
 var alertTimer = null;
 var hiddenCheck = null;
 function ItemUsed(alerts) {
+    console.log(JSON.stringify(alerts));
+
     clearTimeout(alertTimer);
     clearInterval(hiddenCheck);
 
@@ -736,31 +800,34 @@ function ItemUsed(alerts) {
         $('#use-alert .slot').remove();
     });
 
-    hiddenCheck = setInterval(function() {
-        if (!$('#use-alert').is(':visible') && $('#use-alert .slot').length <= 0) {
-            $.each(alerts, function(index, data) {
-                $('#use-alert').append(`<div class="slot alert-${index}""><div class="item"><div class="item-count">${data.qty}</div><div class="item-name">${data.item.label}</div></div><div class="alert-text">${data.message}</div></div>`)
-                .ready(function() {
-                    $(`.alert-${index}`).find('.item').css('background-image', `url(\'img/items/${data.itemId}.png\')`);
-                    if (data.item.slot <= 5) {
-                        $(`.alert-${index}`).find('.item').append(`<div class="item-keybind">${data.item.slot}</div>`)
-                    }
-                });
-            });
+    if (data.item == null) {
 
-            clearInterval(hiddenCheck);
-    
-        
-            $('#use-alert').show('slide', { direction: 'left' }, 500, function() {
-                alertTimer = setTimeout(function() {
-                    $('#use-alert .slot').addClass('expired');
-                    $('#use-alert').hide('slide', { direction: 'left' }, 500, function() {
-                        $('#use-alert .slot.expired').remove();
+        hiddenCheck = setInterval(function() {
+            if (!$('#use-alert').is(':visible') && $('#use-alert .slot').length <= 0) {
+                $.each(alerts, function(index, data) {
+                    $('#use-alert').append(`<div class="slot alert-${index}""><div class="item"><div class="item-count">${data.qty}</div><div class="item-name">${data.item.label}</div></div><div class="alert-text">${data.message}</div></div>`)
+                    .ready(function() {
+                        $(`.alert-${index}`).find('.item').css('background-image', `url(\'img/items/${data.item.itemId}.png\')`);
+                        if (data.item.slot <= 5) {
+                            $(`.alert-${index}`).find('.item').append(`<div class="item-keybind">${data.item.slot}</div>`)
+                        }
                     });
-                }, 2500);
-            });
-        }
-    }, 100)
+                });
+    
+                clearInterval(hiddenCheck);
+        
+            
+                $('#use-alert').show('slide', { direction: 'left' }, 500, function() {
+                    alertTimer = setTimeout(function() {
+                        $('#use-alert .slot').addClass('expired');
+                        $('#use-alert').hide('slide', { direction: 'left' }, 500, function() {
+                            $('#use-alert .slot.expired').remove();
+                        });
+                    }, 2500);
+                });
+            }
+        }, 100)
+    }
 }
 
 var actionBarTimer = null;
@@ -794,7 +861,7 @@ function ActionBar(items, timer) {
         for (let i = 0; i < 5; i++) {
             if (items[i] != null) {
                 $('#action-bar').append(`<div class="slot slot-${i}"><div class="item"><div class="item-count">${items[i].qty}</div><div class="item-name">${items[i].label}</div><div class="item-keybind">${items[i].slot}</div></div></div>`);
-                $(`.slot-${i}`).find('.item').css('background-image', `url(\'img/items/${data.itemId}.png\')`);
+                $(`.slot-${i}`).find('.item').css('background-image', `url(\'img/items/${items[i].itemId}.png\')`);
             } else {
                 $('#action-bar').append(`<div class="slot slot-${i}" data-empty="true"><div class="item"><div class="item-count"></div><div class="item-name">NONE</div><div class="item-keybind">${i + 1}</div></div></div>`);
                 $(`.slot-${i}`).find('.item').css('background-image', 'none');

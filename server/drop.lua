@@ -1,8 +1,6 @@
 drops = {}
 
-function CreateDrop(src, char, item, count, coords)
-    local returnVal = {}
-
+function CreateDrop(src, char, item, count, coords, cb)
     local fuck = {
         x = coords.x,
         y = coords.y,
@@ -18,34 +16,20 @@ function CreateDrop(src, char, item, count, coords)
 
         TriggerClientEvent('mythic_inventory:client:DropCreateForAll', -1, newDrop)
 
-        returnVal = newDrop
+        cb(newDrop)
     end)
-
-
-    while returnVal.owner == nil do
-        Citizen.Wait(100)
-    end
-
-    return returnVal
 end
 
-function AddToDrop(src, char, owner, item, count)
-    local returnVal = nil
+function AddToDrop(src, char, owner, item, count, cb)
     if drops[owner] ~= nil then
         char:addToDrop(owner, item, count, function(s)
             if item.type == 1 then
                 TriggerClientEvent("mythic_inventory:client:RemoveWeapon", src, item.name)
             end
 
-            returnVal = true
+            cb(s)
         end)
     end
-
-    while returnVal == nil do
-        Citizen.Wait(10)
-    end
-
-    return returnVal
 end
 
 RegisterServerEvent('mythic_inventory:server:GetActiveDrops')
@@ -72,17 +56,19 @@ AddEventHandler('mythic_inventory:server:Drop', function(item, count, coords)
                     for k, v in pairs(drops) do
                         local dist = #(vector3(v.position.x, v.position.y, v.position.z) - coords)
                         if dist < 5.0 then
-                            local cunt = AddToDrop(src, char, v.owner, item, count)
-                            dropinv = v
-                            TriggerClientEvent('mythic_inventory:client:RefreshInventory2', -1, dropinv, dropinv)
+                            AddToDrop(src, char, v.owner, item, count, function(cunt)
+                                dropinv = v
+                                TriggerClientEvent('mythic_inventory:client:RefreshInventory2', -1, dropinv, dropinv)
+                            end)
                             break
                         end
                     end
 
                     if dropinv == nil then
-                        dropinv = CreateDrop(src, char, item, count, coords)
-                        TriggerEvent('mythic_inventory:server:GetSecondaryInventory', src, dropinv)
-                    else
+                        CreateDrop(src, char, item, count, coords, function(drop)
+                            dropinv = drop
+                            TriggerEvent('mythic_inventory:server:GetSecondaryInventory', src, dropinv)
+                        end)
                     end
                     
                     --TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)

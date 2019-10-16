@@ -425,12 +425,7 @@ AddEventHandler("mythic_inventory:client:SetupUI", function(data)
     items = {}
     inventory = data.inventory
 
-    money = {
-        cash = data.cash,
-        bank = data.bank,
-    }
-
-    SendNUIMessage( { action = "setItems", itemList = inventory, invOwner = data.invId, invTier = data.invTier, money = money } )
+    SendNUIMessage( { action = "setItems", itemList = inventory, invOwner = data.invId, invTier = data.invTier } )
 end)
 
 RegisterNetEvent("mythic_inventory:client:SetupSecondUI")

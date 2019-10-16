@@ -99,8 +99,6 @@ function GetPlayerInventory(source)
 				invId = { type = 1, owner = cData.id },
 				invTier = InvSlots[1],
 				inventory = itemsObject,
-				cash = cData.cash,
-				bank = cData.bank,
 			}
 		
 			TriggerClientEvent('mythic_inventory:client:SetupUI', source, data)
