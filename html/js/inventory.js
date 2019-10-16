@@ -104,7 +104,9 @@ function EndDragging() {
 function closeInventory() {
     EndDragging();
     $.post("http://mythic_inventory/NUIFocusOff", JSON.stringify({}));
-    $('.near-players-wrapper').hide();
+    $('.near-players-wrapper').fadeOut();
+    $('#search').val('');
+    $('#count').val('0');
 }
 
 function inventorySetup(invOwner, items) {
