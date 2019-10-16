@@ -524,18 +524,12 @@ function SearchInventory(searchVal) {
                         item.label.toUpperCase().includes(searchVal.toUpperCase()) ||
                         item.itemId.includes(searchVal.toUpperCase())
                     ) {
-                        $(slot).animate({
-                            opacity: '1.0'
-                        }, { duration: 100 });
+                        $(slot).removeClass('search-non-match');
                     } else {
-                        $(slot).animate({
-                            opacity: '0.25'
-                        }, { duration: 100 });
+                        $(slot).addClass('search-non-match');
                     }
                 } else {
-                    $(slot).animate({
-                        opacity: '0.25'
-                    }, { duration: 100 });
+                    $(slot).addClass('search-non-match');
                 }
             }
         );
@@ -549,9 +543,7 @@ function SearchInventory(searchVal) {
                 .find('#inventoryOne, #inventoryTwo')
                 .children(),
             function(index, slot) {
-                $(slot).animate({
-                    opacity: '1.0'
-                }, { duration: 100 });
+                $(slot).removeClass('search-non-match');
             }
         );
     }

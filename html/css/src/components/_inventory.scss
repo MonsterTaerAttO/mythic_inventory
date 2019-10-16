@@ -335,6 +335,11 @@ body {
                 //     background-color: rgba(26, 0, 26, 0.664) !important;
                 // }
             }
+
+            &.search-non-match {
+                opacity: 0.25;
+                transition: opacity ease-in 0.1s;
+            }
         
             &.orig-dragging {
                 filter: brightness(0.75);
