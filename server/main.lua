@@ -1,4 +1,11 @@
+MYTH = MYTH or {}
+MYTH.Inventory = MYTH.Inventory or {}
+
 local Callbacks = nil
+
+function MYTH.Inventory.ItemUsed(self, client, alerts)
+	TriggerClientEvent('mythic_inventory:client:ShowItemUse', client, alerts)
+end
 
 AddEventHandler('mythic_base:shared:ComponentsReady', function()
 	Callbacks = exports['mythic_base']:FetchComponent('Callbacks')
@@ -424,4 +431,8 @@ AddEventHandler('mythic_inventory:server:RobPlayer', function(target)
 		tChar = tPlayer:GetData('character'):GetData()
 		TriggerEvent('mythic_inventory:server:GetSecondaryInventory', target)
 	end
+end)
+
+AddEventHandler('mythic_base:shared:ComponentRegisterReady', function()
+    exports['mythic_base']:CreateComponent('Inventory', MYTH.Inventory)
 end)

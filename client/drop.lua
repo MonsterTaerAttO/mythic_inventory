@@ -5,33 +5,7 @@ bagId = nil
 
 function openDrop()
     if bagId ~= nil then
-        TriggerEvent('mythic_inventory:client:GetSecondaryInventory', bagId)
-    end
-end
-
-function Print3DText(coords, text)
-    local onScreen, _x, _y = World3dToScreen2d(coords.x, coords.y, coords.z)
-
-    if onScreen then
-        local px, py, pz = table.unpack(GetGameplayCamCoords())
-        local dist = #(vector3(px, py, pz) - vector3(coords.x, coords.y, coords.z))    
-        local scale = (1 / dist) * 20
-        local fov = (1 / GetGameplayCamFov()) * 100
-        local scale = scale * fov   
-        SetTextScale(0.35, 0.35)
-        SetTextFont(4)
-        SetTextProportional(1)
-        SetTextColour(250, 250, 250, 255)		-- You can change the text color here
-        SetTextDropshadow(1, 1, 1, 1, 255)
-        SetTextEdge(2, 0, 0, 0, 150)
-        SetTextDropShadow()
-        SetTextOutline()
-        SetTextEntry("STRING")
-        SetTextCentre(1)
-        AddTextComponentString(text)
-        SetDrawOrigin(coords.x, coords.y, coords.z, 0)
-        DrawText(0.0, 0.0)
-        ClearDrawOrigin()
+        MYTh.Inventory.Open:Secondary(bagId)
     end
 end
 

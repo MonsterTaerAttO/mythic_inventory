@@ -79,9 +79,10 @@ window.addEventListener("message", function (event) {
             break;
         case 'showActionBar':
             ActionBar(event.data.items, event.data.timer);
-            break;
-        case 'actionbarUsed':
-            ActionBarUsed(event.data.index);
+
+            if (event.data.index != null) {
+                ActionBarUsed(event.data.index);
+            }
             break;
     }
 });
@@ -790,8 +791,7 @@ function ItemUsed(alerts) {
         $('#use-alert .slot').remove();
     });
 
-    if (data.item == null) {
-
+    if (alerts != null) {
         hiddenCheck = setInterval(function() {
             if (!$('#use-alert').is(':visible') && $('#use-alert .slot').length <= 0) {
                 $.each(alerts, function(index, data) {

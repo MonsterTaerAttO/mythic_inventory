@@ -18,7 +18,7 @@ DecorRegister('Container-Inventory', 3)
 
 function openContainer()
     if containerId ~= nil then
-        TriggerEvent('mythic_inventory:client:GetSecondaryInventory', containerList[containerId])
+        MYTh.Inventory.Open:Secondary(containerList[containerId])
     end
 end
 
