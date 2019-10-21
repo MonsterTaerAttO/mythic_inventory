@@ -328,8 +328,8 @@ body {
                 // }
             }
         
-            &.store {
-                background-color: $slot-player;
+            &.shop {
+                background-color: $slot-shop;
         
                 // &:hover {
                 //     background-color: rgba(26, 0, 26, 0.664) !important;
@@ -419,6 +419,10 @@ body {
                     right: 5px;
                     height: 20px;
                     z-index: 500;
+                }
+
+                .shop-cost {
+                    margin-left: 5px;
                 }
             }
         }

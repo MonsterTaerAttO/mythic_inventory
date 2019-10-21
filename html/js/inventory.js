@@ -42,7 +42,6 @@ window.addEventListener("message", function (event) {
             $(".ui").fadeIn();
             break;
         case 'hide':
-            $("#dialog").dialog("close");
             $(".ui").fadeOut();
             break;
         case 'closeSecondary':
@@ -142,8 +141,17 @@ function secondInventorySetup(invOwner, items) {
     $('#inventoryTwo').data('invOwner', invOwner);
     secondUsed = 0;
     $.each(items, function (index, item) {
+        if (invOwner.type == 18) {
+            item.qty = item.max;
+        }
+
         var slot = $('#inventoryTwo').find('.slot').filter(function(){ return $(this).data('slot') === item.slot;});
         secondUsed++;
+
+        if ($(slot).find('.item .shop-cost').length > 0) {
+            $(slot).find('.item .shop-cost').html(`$${formatCurrency(item.price)}`)
+        }
+
         var slotId = $(slot).data('slot');
         secondItems[slotId] = item;
         AddItemToSlot(slot, item);
@@ -201,6 +209,10 @@ function setupSecondarySlots(owner) {
             case 16:
                 $('#inventoryTwo').find('.slot-template').addClass('evidence');
                 break;
+            case 18:
+                $('#inventoryTwo').find('.slot-template').addClass('shop');
+                $('#inventoryTwo').find('.slot-template').find('.item').append('<div class="shop-cost"></div>');
+                break;
         }
 
         $('#inventoryTwo').find('.slot-template').removeClass('slot-template');
@@ -227,9 +239,16 @@ $(document).ready(function () {
         if (itemData == null && !dragging) { return };
 
         if(dragging) {
-            if($(this).data('slot') !== undefined && $(origDrag).data('slot') !== $(this).data('slot') || $(this).data('slot') !== undefined && $(origDrag).data('invOwner') !== $(this).parent().data('invOwner')) {
+
+            if($(this).data('slot') !== undefined && $(origDrag).data('slot') !== $(this).data('slot') || $(this).data('slot') !== undefined && $(origDrag).data('invOwner') !== $(this).parent().data('invOwner')) {    
+                if ($(this).parent().data('invOwner').type == 18) {
+                    DisplayMoveError(origDrag, $(this), 'Cannot Put Items In Inventory');
+                    EndDragging();
+                    return;
+                }
+                
                 if($(this).find('.item').data('item') !== undefined) {
-                    AttemptDropInOccupiedSlot(origDrag, $(this), parseInt($("#count").val()))
+                    AttemptDropInOccupiedSlot(origDrag, $(this), parseInt($("#count").val()));
                 } else {
                     AttemptDropInEmptySlot(origDrag, $(this), parseInt($("#count").val()));
                 }
@@ -242,14 +261,14 @@ $(document).ready(function () {
                 // Store a reference because JS is retarded
                 origDrag = $(this)
                 AddItemToSlot(origDrag, itemData);
-                $(origDrag).data('slot', $(this).data('slot'));
+                $(origDrag).data('slot', $(this).find('.item').data('slot'));
                 $(origDrag).data('invOwner', $(this).parent().data('invOwner'));
                 $(origDrag).addClass('orig-dragging');
 
                 // Clone this shit for dragging
                 draggingItem = $(this).clone();
                 AddItemToSlot(draggingItem, itemData);
-                $(draggingItem).data('slot', $(this).data('slot'));
+                $(draggingItem).data('slot', $(this).find('.item').data('slot'));
                 $(draggingItem).data('invOwner', $(this).parent().data('invOwner'));
                 $(draggingItem).addClass('dragging');
 
@@ -395,17 +414,17 @@ $(document).ready(function () {
             $('.tooltip-div').find('.tooltip-meta').html('');
             if(itemData.type === 1 || itemData.itemId === 'license') {
                 if(itemData.type === 1) {
-                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Registered Owner</div> : <div class="meta-val">${itemData.staticMeta.owner}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Registered Owner</div> : <div class="meta-val">${itemData.metadata.owner}</div></div>`);
                 } else if(itemData.itemId === 'license') {
-                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Name</div> : <div class="meta-val">${itemData.staticMeta.name}</div></div>`);
-                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Issued On</div> : <div class="meta-val">${itemData.staticMeta.issuedDate}</div></div>`);
-                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Height</div> : <div class="meta-val">${itemData.staticMeta.height}</div></div>`);
-                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Date of Birth</div> : <div class="meta-val">${itemData.staticMeta.dob}</div></div>`);
-                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Phone Number</div> : <div class="meta-val">${itemData.staticMeta.phone}</div></div>`);
-                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Citizen ID</div> : <div class="meta-val">${itemData.staticMeta.id} - ${itemData.staticMeta.user}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Name</div> : <div class="meta-val">${itemData.metadata.name}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Issued On</div> : <div class="meta-val">${itemData.metadata.issuedDate}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Height</div> : <div class="meta-val">${itemData.metadata.height}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Date of Birth</div> : <div class="meta-val">${itemData.metadata.dob}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Phone Number</div> : <div class="meta-val">${itemData.metadata.phone}</div></div>`);
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Citizen ID</div> : <div class="meta-val">${itemData.metadata.id} - ${itemData.metadata.user}</div></div>`);
 
-                    if(itemData.staticMeta.endorsements !== undefined) {
-                        $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Endorsement</div> : <div class="meta-val">${itemData.staticMeta.endorsements}</div></div>`);
+                    if(itemData.metadata.endorsements !== undefined) {
+                        $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Endorsement</div> : <div class="meta-val">${itemData.metadata.endorsements}</div></div>`);
                     }
 
                     if (itemData.description != null && itemData.description != '') {
@@ -564,9 +583,13 @@ function AttemptDropInEmptySlot(origin, destination, moveQty) {
         if(moveQty > item.qty || moveQty === 0) { moveQty = item.qty; }
 
         if(moveQty === item.qty) {
-            ResetSlotToEmpty(origin);    
+            if (origin.parent().data('invOwner').type != 18) {
+                ResetSlotToEmpty(origin);
+            }
+            
             item.slot = destination.data('slot');
-            AddItemToSlot(destination, item)
+            AddItemToSlot(destination, item);
+
             successAudio.play();
 
             InventoryLog(`Moving ${item.qty} ${item.label} From ${origin.data('invOwner').label} Slot ${origin.data('slot')} To ${destination.parent().data('invOwner').label} Slot ${item.slot}`)
@@ -580,12 +603,16 @@ function AttemptDropInEmptySlot(origin, destination, moveQty) {
             let item2 = Object.create(item);
             item2.slot = destination.data('slot');
             item2.qty = moveQty;
-            item.qty = item.qty - moveQty
-            AddItemToSlot(origin, item);
+
+            if (origin.parent().data('invOwner').type != 18) {
+                item.qty = item.qty - moveQty
+                AddItemToSlot(origin, item);
+            }
+            
             AddItemToSlot(destination, item2);
             successAudio.play();
             
-            InventoryLog(`Moving ${moveQty} ${item.label} From ${origin.data('invOwner')} Slot ${item.slot} To ${destination.parent().data('invOwner').label} Slot ${item.slot}`);
+            InventoryLog(`Moving ${moveQty} ${item.label} From ${origin.data('invOwner').label} Slot ${item.slot} To ${destination.parent().data('invOwner').label} Slot ${item.slot}`);
             $.post("http://mythic_inventory/SplitStack", JSON.stringify({
                 originOwner: origin.parent().data('invOwner'),
                 originItem: origin.find('.item').data('item'),
@@ -621,9 +648,13 @@ function AttemptDropInOccupiedSlot(origin, destination, moveQty) {
         if (originItem.itemId === destinationItem.itemId && destinationItem.stackable) {
             if (moveQty != originItem.qty) {
                 if (destinationItem.qty + moveQty <= destinationItem.max) {
-                    originItem.qty -= moveQty;
                     destinationItem.qty += moveQty;
-                    AddItemToSlot(origin, originItem);
+
+                    if (origin.parent().data('invOwner').type != 18) {
+                        originItem.qty -= moveQty;
+                        AddItemToSlot(origin, originItem);
+                    }
+
                     AddItemToSlot(destination, destinationItem);
     
                     successAudio.play();
@@ -637,8 +668,12 @@ function AttemptDropInOccupiedSlot(origin, destination, moveQty) {
                     }));
                 } else if (destinationItem.qty < destinationItem.max) {
                     let newOrigQty = destinationItem.max - destinationItem.qty;
-                    originItem.qty -= newOrigQty;
-                    AddItemToSlot(origin, originItem);
+
+                    if (origin.parent().data('invOwner').type != 18) {
+                        originItem.qty -= newOrigQty;
+                        AddItemToSlot(origin, originItem);
+                    }
+                    
                     destinationItem.qty = destinationItem.max;
                     AddItemToSlot(destination, destinationItem);
     
@@ -656,6 +691,11 @@ function AttemptDropInOccupiedSlot(origin, destination, moveQty) {
                 }
             } else {
                 if ((destinationItem.qty === destinationItem.max || originItem.qty === originItem.max)) {
+                    if (origin.parent().data('invOwner').type == 18) {
+                        DisplayMoveError(origin, destination, "Cannot Swap Items With Items In Shop");
+                        return;
+                    }
+
                     destinationItem.slot = origin.data('slot')
                     originItem.slot = destination.data('slot');
         
@@ -674,7 +714,10 @@ function AttemptDropInOccupiedSlot(origin, destination, moveQty) {
                     }));
                 }
                 else if(originItem.qty + destinationItem.qty <= destinationItem.max) {
-                    ResetSlotToEmpty(origin);
+                    if (origin.parent().data('invOwner').type != 18) {
+                        ResetSlotToEmpty(origin);
+                    }
+
                     destinationItem.qty += originItem.qty;
                     AddItemToSlot(destination, destinationItem);
     
@@ -689,8 +732,12 @@ function AttemptDropInOccupiedSlot(origin, destination, moveQty) {
                     }));
                 } else {
                     let newOrigQty = destinationItem.max - destinationItem.qty;
-                    originItem.qty -= newOrigQty;
-                    AddItemToSlot(origin, originItem);
+
+                    if (origin.parent().data('invOwner').type != 18) {
+                        originItem.qty -= newOrigQty;
+                        AddItemToSlot(origin, originItem);
+                    }
+                    
                     destinationItem.qty = destinationItem.max;
                     AddItemToSlot(destination, destinationItem);
     
@@ -707,6 +754,11 @@ function AttemptDropInOccupiedSlot(origin, destination, moveQty) {
             }
 
         } else {
+            if (origin.parent().data('invOwner').type == 18) {
+                DisplayMoveError(origin, destination, "Cannot Swap Items With Items In Shop");
+                return;
+            }
+
             destinationItem.slot = origin.data('slot')
             originItem.slot = destination.data('slot');
 
@@ -737,10 +789,12 @@ function AttemptDropInOccupiedSlot(origin, destination, moveQty) {
 }
 
 function DisplayMoveError(origin, destination, error) {
-    failAudio.play();  
+    failAudio.play();
+    $('.error').removeClass('error');
+    clearTimeout(errorHighlightTimer);
+
     origin.addClass('error');
     destination.addClass('error');
-    if (errorHighlightTimer != null) { clearTimeout(errorHighlightTimer); }
     errorHighlightTimer = setTimeout(function() {
         origin.removeClass('error');
         destination.removeClass('error');
@@ -795,13 +849,15 @@ function ItemUsed(alerts) {
         hiddenCheck = setInterval(function() {
             if (!$('#use-alert').is(':visible') && $('#use-alert .slot').length <= 0) {
                 $.each(alerts, function(index, data) {
-                    $('#use-alert').append(`<div class="slot alert-${index}""><div class="item"><div class="item-count">${data.qty}</div><div class="item-name">${data.item.label}</div></div><div class="alert-text">${data.message}</div></div>`)
-                    .ready(function() {
-                        $(`.alert-${index}`).find('.item').css('background-image', `url(\'img/items/${data.item.itemId}.png\')`);
-                        if (data.item.slot <= 5) {
-                            $(`.alert-${index}`).find('.item').append(`<div class="item-keybind">${data.item.slot}</div>`)
-                        }
-                    });
+                    if (data.item != null) {
+                        $('#use-alert').append(`<div class="slot alert-${index}""><div class="item"><div class="item-count">${data.qty}</div><div class="item-name">${data.item.label}</div></div><div class="alert-text">${data.message}</div></div>`)
+                        .ready(function() {
+                            $(`.alert-${index}`).find('.item').css('background-image', `url(\'img/items/${data.item.itemId}.png\')`);
+                            if (data.item.slot <= 5) {
+                                $(`.alert-${index}`).find('.item').append(`<div class="item-keybind">${data.item.slot}</div>`)
+                            }
+                        });
+                    }
                 });
     
                 clearInterval(hiddenCheck);
@@ -831,7 +887,7 @@ function ActionBar(items, timer) {
                 $(`.slot-${i}`).find('.item-count').html(items[i].qty);
                 $(`.slot-${i}`).find('.item-name').html(items[i].label);
                 $(`.slot-${i}`).find('.item-keybind').html(items[i].slot);
-                $(`.slot-${i}`).find('.item').css('background-image', `url(\'img/items/${data.itemId}.png\')`);
+                $(`.slot-${i}`).find('.item').css('background-image', `url(\'img/items/${items[i].itemId}.png\')`);
             } else {
                 $(`.slot-${i}`).find('.item-count').html('');
                 $(`.slot-${i}`).find('.item-name').html('NONE');
@@ -844,7 +900,7 @@ function ActionBar(items, timer) {
                 $('#action-bar').hide('slide', { direction: 'down' }, 500, function() {
                     $('#action-bar .slot.expired').remove();
                 });
-            }, timer == null ? 2500 : timer);
+            }, timer == null ? 1000000000 : timer);
         }
     } else {
         $('#action-bar').html('');
@@ -864,7 +920,7 @@ function ActionBar(items, timer) {
                 $('#action-bar').hide('slide', { direction: 'down' }, 500, function() {
                     $('#action-bar .slot.expired').remove();
                 });
-            }, timer == null ? 2500 : timer);
+            }, timer == null ? 100000 : timer);
         });
     }
 }

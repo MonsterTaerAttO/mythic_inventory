@@ -8,7 +8,6 @@ local isInInventory = false
 local openCooldown = false
 local myInventory = nil
 local secondaryInventory = nil
-local verifyItemCount = {}
 
 PlayerVeh = nil
 Callbacks = nil
@@ -53,7 +52,7 @@ MYTH.Inventory.Setup = {
                                 end
     
                                 if plate ~= nil then
-                                    MYTh.Inventory.Open:Secondary()
+                                    MYTH.Inventory.Load:Secondary()
                                 end
                             else
                                 local veh = MYTH.Inventory.Checks:Vehicle()
@@ -74,7 +73,7 @@ MYTH.Inventory.Setup = {
                                         end
                                         
                                         SetVehicleDoorOpen(veh, 5, true, false)
-                                        MYTh.Inventory.Open:Secondary()
+                                        MYTH.Inventory.Load:Secondary()
                                         MYTH.Inventory.Checks:TrunkDistance(veh)
                                     else
                                         exports['mythic_notify']:SendAlert('error', 'Vehicle Is Locked')
@@ -151,13 +150,15 @@ end
 
 function MYTH.Inventory.Hotkey(self, index)
     TriggerServerEvent('mythic_inventory:server:UseItemFromSlot', securityToken, index)
-    Callbacks:ServerCallback('mythic_inventory:server:GetHotkeys', { }, function(items)
-        SendNUIMessage({
-            action = 'showActionBar',
-            items = items,
-            timer = 500,
-            index = index
-        })
+    Callbacks:ServerCallback('mythic_inventory:server:UseHotkey', { slot = index }, function()
+        Callbacks:ServerCallback('mythic_inventory:server:GetHotkeys', { }, function(items)
+            SendNUIMessage({
+                action = 'showActionBar',
+                items = items,
+                timer = 500,
+                index = index
+            })
+        end)
     end)
 end
 
@@ -167,6 +168,27 @@ function MYTH.Inventory.ItemUsed(self, alerts)
         alerts = alerts
     })
 end
+
+Citizen.CreateThread(function()
+    while true do
+        local player = PlayerPedId()
+        local pos = GetEntityCoords(player)
+        local dist = #(vector3(-1045.3142089844, -2731.0183105469, 20.169298171997) - pos)
+
+        if dist < 20 then
+            DrawMarker(25, -1045.3142089844, -2731.0183105469, 20.169298171997 - 0.99, 0, 0, 0, 0, 0, 0, 0.5, 0.5, 1.0, 139, 16, 20, 250, false, false, 2, false, false, false, false)
+
+            if dist < 2 then
+                if IsControlJustReleased(0, 51) then
+                    TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId(-1)), { type = 18, owner = '1' })
+                end
+            end
+        end
+
+        Citizen.Wait(1)
+    end
+end)
+
 RegisterNetEvent('mythic_inventory:client:ShowItemUse')
 AddEventHandler('mythic_inventory:client:ShowItemUse', function(alerts)
     MYTH.Inventory:ItemUsed(alerts)
@@ -208,6 +230,11 @@ MYTH.Inventory.Checks = {
                     Citizen.Wait(500)
                 end
             end
+        end)
+    end,
+    HasItem = function(self, items, cb)
+        Callbacks:ServerCallback('mythic_inventory:server:HasItem', items, function(status)
+            cb(status)
         end)
     end
 }
@@ -395,11 +422,11 @@ AddEventHandler("mythic_inventory:client:RefreshInventory", function()
             local plate = GetVehicleNumberPlateText(veh)
             if GetVehicleDoorLockStatus(veh) == 1 then
                 SetVehicleDoorOpen(veh, 5, true, false)
-                MYTh.Inventory.Open:Secondary()
+                MYTH.Inventory.Load:Secondary()
             end
         end
     elseif secondaryInventory ~= nil then
-        MYTh.Inventory.Open:Secondary()
+        MYTH.Inventory.Load:Secondary()
     end
 end)
 
@@ -417,11 +444,11 @@ AddEventHandler("mythic_inventory:client:RefreshInventory2", function(origin, de
                 local plate = GetVehicleNumberPlateText(veh)
                 if GetVehicleDoorLockStatus(veh) == 1 then
                     SetVehicleDoorOpen(veh, 5, true, false)
-                    MYTh.Inventory.Open:Secondary()
+                    MYTH.Inventory.Load:Secondary()
                 end
             end
         elseif secondaryInventory ~= nil then
-            MYTh.Inventory.Open:Secondary()
+            MYTH.Inventory.Load:Secondary()
         end
     end
 end)
@@ -440,7 +467,7 @@ end)
 
 RegisterNetEvent("mythic_inventory:client:CloseSecondary")
 AddEventHandler("mythic_inventory:client:CloseSecondary", function(owner)
-    if secondaryInventory.type == owner.type and secondaryInventory.owner == owner.owner or secondaryInventory == nil then
+    if secondaryInventory == nil or (secondaryInventory.type == owner.type and secondaryInventory.owner == owner.owner) then
         MYTH.Inventory.Close:Secondary()
     end
 end)
@@ -474,18 +501,6 @@ RegisterNUICallback("GetSurroundingPlayers", function(data, cb)
     })
 
     cb("ok")
-end)
-
-RegisterNetEvent('mythic_inventory:client:CheckItemCount')
-AddEventHandler('mythic_inventory:client:CheckItemCount', function(unique, items, cb)
-    verifyItemCount[unique] = cb
-    TriggerServerEvent('mythic_inventory:server:CheckItemCount', unique, items)
-end)
-
-RegisterNetEvent('mythic_inventory:client:SendItemCountStatus')
-AddEventHandler('mythic_inventory:client:SendItemCountStatus', function(unique, status)
-    verifyItemCount[unique](status)
-    verifyItemCount[unique] = nil
 end)
 
 RegisterNUICallback("MoveToEmpty", function(data, cb)

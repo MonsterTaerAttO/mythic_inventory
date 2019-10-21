@@ -5,7 +5,7 @@ bagId = nil
 
 function openDrop()
     if bagId ~= nil then
-        MYTh.Inventory.Open:Secondary(bagId)
+        MYTH.Inventory.Load:Secondary(bagId)
     end
 end
 

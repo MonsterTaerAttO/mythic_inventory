@@ -53,23 +53,20 @@ AddEventHandler('mythic_inventory:server:Drop', function(item, count, coords)
                     end
 
                     local dropinv = nil
+                    local pos = GetEntityCoords(GetPlayerPed(src))
                     for k, v in pairs(drops) do
-                        local dist = #(vector3(v.position.x, v.position.y, v.position.z) - coords)
+                        local dist = #(vector3(v.position.x, v.position.y, v.position.z) - pos)
                         if dist < 5.0 then
-                            AddToDrop(src, char, v.owner, item, count, function(cunt)
-                                dropinv = v
-                                TriggerClientEvent('mythic_inventory:client:RefreshInventory2', -1, dropinv, dropinv)
+                            AddToDrop(src, char, v.owner, item, count, function()
+                                TriggerClientEvent('mythic_inventory:client:RefreshInventory2', -1, v, v)
                             end)
-                            break
+                            return
                         end
                     end
 
-                    if dropinv == nil then
-                        CreateDrop(src, char, item, count, coords, function(drop)
-                            dropinv = drop
-                            TriggerEvent('mythic_inventory:server:GetSecondaryInventory', src, dropinv)
-                        end)
-                    end
+                    CreateDrop(src, char, item, count, coords, function(drop)
+                        TriggerEvent('mythic_inventory:server:GetSecondaryInventory', src, drop)
+                    end)
                     
                     --TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)
                     --TriggerClientEvent('mythic_inventory:client:RefreshInventory2', -1, dropinv)
