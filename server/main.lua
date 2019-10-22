@@ -133,7 +133,8 @@ AddEventHandler('mythic_inventory:server:MoveToEmpty', function(originOwner, ori
 		if originOwner.type == 18 then
 			local items = Config.Shop[tonumber(originOwner.owner)]
 			local item = exports['mythic_base']:FetchComponent('ItemData'):Get(items[originItem])
-			char:deductCash((item.price * item.max), function(status)
+
+			mChar.Cash:Remove((item.price * item.max), function(status)
 				if status then
 					char:addItemToSlot(items[originItem], item.max, {}, destinationItem.slot, function(status)
 						TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)
@@ -198,7 +199,8 @@ AddEventHandler('mythic_inventory:server:SplitStack', function(originOwner, orig
 	Citizen.CreateThread(function()
 		if originOwner.type == 18 then
 			local items = Config.Shop[tonumber(originOwner.owner)]
-			char:deductCash((originItem.price * moveQty), function(status)
+
+			mChar.Cash:Remove((originItem.price * moveQty), function(status)
 				if status then
 					char:addItemToSlot(originItem.itemId, moveQty, {}, destinationItem.slot, function(status)
 						TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)
