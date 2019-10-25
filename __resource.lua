@@ -7,14 +7,13 @@ version '1.0'
 ui_page 'html/ui.html'
 
 client_scripts {
-	'@salty_tokenizer/init.lua',
   'client/main.lua',
   'client/drop.lua',
   'client/container.lua',
 }
 
 server_scripts {
-	'@salty_tokenizer/init.lua',
+  'config.lua',
 	'server/startup.lua',
 	'server/commands.lua',
   'server/database.lua',
@@ -41,10 +40,6 @@ files {
     -- ICONS
     
     'html/img/items/*.png',
-}
-
-exports {
-  'DisableInvOpen'
 }
 
 dependencies {

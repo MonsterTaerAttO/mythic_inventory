@@ -18,7 +18,7 @@ DecorRegister('Container-Inventory', 3)
 
 function openContainer()
     if containerId ~= nil then
-        MYTh.Inventory.Open:Secondary(containerList[containerId])
+        MYTH.Inventory.Open:Secondary(containerList[containerId])
     end
 end
 
