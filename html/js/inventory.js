@@ -52,10 +52,20 @@ window.addEventListener("message", function (event) {
         case 'setItems':
             firstTier = event.data.invTier;
             inventorySetup(event.data.invOwner, event.data.itemList);
+
+            if ($('#search').val() !== '') {
+                SearchInventory($('#search').val());
+            }
+
             break;
         case 'setSecondInventoryItems':
             secondTier = event.data.invTier;
             secondInventorySetup(event.data.invOwner, event.data.itemList);
+
+            if ($('#search').val() !== '') {
+                SearchInventory($('#search').val());
+            }
+
             break;
         case 'setInfoText':
             $(".info-div").html(event.data.text);
