@@ -180,7 +180,7 @@ Citizen.CreateThread(function()
 
             if dist < 2 then
                 if IsControlJustReleased(0, 51) then
-                    TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId(-1)), { type = 18, owner = '1' })
+                    TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId()), { type = 18, owner = '1' })
                 end
             end
         end
@@ -248,7 +248,7 @@ MYTH.Inventory.Load = {
             secondaryInventory = secondary
         end
 
-        TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId(-1)), secondaryInventory)
+        TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId()), secondaryInventory)
     end
 }
 
@@ -260,11 +260,16 @@ MYTH.Inventory.Open = {
             action = "display",
             type = "normal"
         })
+
+        TransitionToBlurred(1000)
+
         SetNuiFocus(true, true)
     end,
     Secondary = function(self)
         MYTH.Inventory.Load:Personal()
         isInInventory = true
+
+        TransitionToBlurred(1000)
     
         SendNUIMessage({
             action = "display",
@@ -280,6 +285,9 @@ MYTH.Inventory.Close = {
         openCooldown = true
         isInInventory = false
         secondaryInventory = nil
+
+        TransitionFromBlurred(1000)
+
         SendNUIMessage({ action = "hide" })
         SetNuiFocus(false, false)
     

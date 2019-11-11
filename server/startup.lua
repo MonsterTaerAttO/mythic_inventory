@@ -24,7 +24,7 @@ Citizen.CreateThread(function()
 
     exports['ghmattimysql']:execute('SELECT * FROM entity_types', {}, function(entities)
         if entities[1] ~= nil then
-            print('^7[^8MYTHIC_BASE ^7: ^8Startup^0] ^5Retrieved ' .. #entities .. ' Entity Types From Database^7')
+            exports['mythic_base']:FetchComponent('Logger'):Startup('Inventory', '^5Retrieved ' .. #entities .. ' Entity Types From Database^7')
             for k, v in pairs(entities) do
                 InvSlots[v.id] = {
                     label = v.label,

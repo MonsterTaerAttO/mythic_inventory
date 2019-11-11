@@ -9,7 +9,7 @@ function CreateDrop(src, char, item, count, coords, cb)
 
     local newDrop = { type = 2, owner = (#drops + 1), position = fuck }
     table.insert(drops, newDrop)
-    char:addToDrop(newDrop.owner, item, count, function(s)
+    char.Inventory.Add:Drop(newDrop.owner, item, count, function(s)
         if item.type == 1 then
             TriggerClientEvent("mythic_inventory:client:RemoveWeapon", src, item.name)
         end
@@ -22,7 +22,7 @@ end
 
 function AddToDrop(src, char, owner, item, count, cb)
     if drops[owner] ~= nil then
-        char:addToDrop(owner, item, count, function(s)
+        char.Inventory.Add:Drop(owner, item, count, function(s)
             if item.type == 1 then
                 TriggerClientEvent("mythic_inventory:client:RemoveWeapon", src, item.name)
             end

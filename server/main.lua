@@ -27,7 +27,7 @@ AddEventHandler('mythic_base:shared:ComponentsReady', function()
 	
 		if data.slot < 6 and data.slot > 0 then
 			Citizen.CreateThread(function()
-				char:getItemFromSlot(data.slot, function(item)
+				char.Inventory.Get:Slot(data.slot, function(item)
 					if item ~= nil then
 						if item.usable then
 							TriggerEvent("mythic_base:server:UseItem", mPlayer:GetData('source'), item, data.slot)
@@ -58,6 +58,10 @@ function CheckItems(type, id, items, cb)
 		end)
 	end
 
+	while failed == nil do
+		Citizen.Wait(10)
+	end
+
 	if not failed then
 		return true
 	else
@@ -65,9 +69,28 @@ function CheckItems(type, id, items, cb)
 	end
 end
 
+RegisterServerEvent('mythic_base:server:CharacterSpawned')
+AddEventHandler('mythic_base:server:CharacterSpawned', function()
+	local src = source
+	local char = exports['mythic_base']:FetchComponent('Fetch'):Source(src):GetData('character')
+	char.Inventory.Get:All(function(items)
+		local query = ''
+		for k, v in pairs(items) do
+			if v ~= nil and v ~= -1 then
+				local meta = 'NULL'
+				if v.metadata ~= nil then
+					meta = json.encode(v.metadata)
+				end
+
+				query = query .. ' ("1", "' .. char:GetData('id') .. '", "' .. v.itemId .. '", "' .. v.qty .. '", "' .. v.slot .. '", ' .. meta .. '),'
+			end
+		end
+	end)
+end)
+
 function GetHotkeyItems(source, cb)
 	local char = exports['mythic_base']:FetchComponent('Fetch'):Source(source):GetData('character')
-	char:getHotkeyItems(function(items)
+	char.Inventory.Get:Hotkeys(function(items)
 		cb(items)
 	end)
 end
@@ -79,7 +102,7 @@ function GetPlayerInventory(source)
 	local cData = char:GetData()
 
 	Citizen.CreateThread(function()
-		char:getInventory(function(items)
+		char.Inventory.Get:All(function(items)
 			local itemsObject = {}
 			for k, v in pairs(items) do
 				local meta = {}
@@ -136,14 +159,14 @@ AddEventHandler('mythic_inventory:server:MoveToEmpty', function(originOwner, ori
 
 			mChar.Cash:Remove((item.price * item.max), function(status)
 				if status then
-					char:addItemToSlot(items[originItem], item.max, {}, destinationItem.slot, function(status)
+					char.Inventory.Add.Personal:Default(items[originItem], item.max, {}, destinationItem.slot, function(status)
 						TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)
 					end, true)
 				end
 				TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)
 			end)
 		else
-			char:moveToEmptySlot(originOwner, originItem, destinationOwner, destinationItem.slot, function(status)
+			char.Inventory.Move:Empty(originOwner, originItem, destinationOwner, destinationItem.slot, function(status)
 				if originOwner.type ~= destinationOwner.type or originOwner.owner ~= destinationOwner.owner then
 					if status then
 						if destinationItem.type == 1 then
@@ -202,13 +225,13 @@ AddEventHandler('mythic_inventory:server:SplitStack', function(originOwner, orig
 
 			mChar.Cash:Remove((originItem.price * moveQty), function(status)
 				if status then
-					char:addItemToSlot(originItem.itemId, moveQty, {}, destinationItem.slot, function(status)
+					char.Inventory.Add.Personal:Slot(originItem.itemId, moveQty, {}, destinationItem.slot, function(status)
 						TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)
 					end, true)
 				end
 			end)
 		else
-			char:splitStack(originOwner, originItem.slot, destinationOwner, destinationItem.slot, moveQty, function(status)
+			char.Inventory.Move:Split(originOwner, originItem.slot, destinationOwner, destinationItem.slot, moveQty, function(status)
 				if originOwner.type ~= destinationOwner.type or originOwner.owner ~= destinationOwner.owner then
 					if originOwner.type == 2 then
 						exports['ghmattimysql']:scalar('SELECT COUNT(owner) As DropInventory FROM inventory_items WHERE type = @type AND owner = @owner', { ['type'] = originOwner.type, ['owner'] = originOwner.owner}, function(count)
@@ -235,7 +258,7 @@ AddEventHandler('mythic_inventory:server:CombineStack', function(originOwner, or
 	local char = mPlayer:GetData('character')
 	
 	Citizen.CreateThread(function()
-		char:combineStack(originOwner, originItem, destinationOwner, destinationItem.slot, function(status)
+		char.Inventory.Move:Combine(originOwner, originItem, destinationOwner, destinationItem.slot, function(status)
 			local isDropClosing = false
 			if originOwner.type ~= destinationOwner.type or originOwner.owner ~= destinationOwner.owner then
 				if originOwner.type == 2 then
@@ -266,7 +289,7 @@ AddEventHandler('mythic_inventory:server:TopoffStack', function(originOwner, ori
 
 	
 	Citizen.CreateThread(function()
-		char:topoffStack(originOwner, originItem.slot, destinationOwner, destinationItem.slot, function()
+		char.Inventory.Move:Topoff(originOwner, originItem.slot, destinationOwner, destinationItem.slot, function()
 			TriggerClientEvent('mythic_inventory:client:RefreshInventory2', -1, originOwner, destinationOwner)
 		end)
 	end)
@@ -279,7 +302,7 @@ AddEventHandler('mythic_inventory:server:SwapItems', function(originOwner, origi
 	local char = mPlayer:GetData('character')
 
 	Citizen.CreateThread(function()
-		char:swapItems(originOwner, originItem.slot, destinationOwner, destinationItem.slot, function(status)
+		char.Inventory.Move:Swap(originOwner, originItem.slot, destinationOwner, destinationItem.slot, function(status)
 			if (originOwner.type ~= destinationOwner.type or originOwner.owner ~= destinationOwner.owner) and status then
 				if originOwner.type == 1 then
 					exports['ghmattimysql']:scalar('SELECT user FROM characters WHERE id = @charid LIMIT 1', { ['charid'] = originOwner.owner }, function(res)
@@ -327,7 +350,7 @@ AddEventHandler('mythic_inventory:server:GiveItem', function(target, item, count
 		local tChar = tPlayer:GetData('character')
 
 		Citizen.CreateThread(function()
-			char:giveItem(tChar:GetData('id'), item.slot, count, function()
+			char.Inventory.Remove:Give(tChar:GetData('id'), item.slot, count, function()
 				TriggerClientEvent('mythic_inventory:client:RefreshInventory', mPlayer:GetData('source'))
 				TriggerClientEvent('mythic_inventory:client:RefreshInventory', tPlayer:GetData('source'))
 			end)
@@ -339,10 +362,14 @@ RegisterServerEvent('mythic_inventory:server:RemoveItem')
 AddEventHandler('mythic_inventory:server:RemoveItem', function(uId, qty, disableNotif)
     local src = source
     local mPlayer = exports['mythic_base']:FetchComponent('Fetch'):Source(src)
-    local char = mPlayer:GetData('character')
+	local char = mPlayer:GetData('character')
+	
+	if qty < 1 then
+		qty = 1
+	end
 
 	Citizen.CreateThread(function()
-		char:removeItem(uId, qty, function(status)
+		char.Inventory.Remove.Personal:UID(uId, qty, function(status)
 			TriggerClientEvent('mythic_inventory:client:RefreshInventory', src)
 		end, disableNotif)
 	end)
@@ -470,5 +497,5 @@ AddEventHandler('mythic_inventory:server:RobPlayer', function(target)
 end)
 
 AddEventHandler('mythic_base:shared:ComponentRegisterReady', function()
-    exports['mythic_base']:CreateComponent('Inventory', MYTH.Inventory)
+    exports['mythic_base']:ExtendComponent('Inventory', MYTH.Inventory)
 end)
