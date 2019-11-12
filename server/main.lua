@@ -8,6 +8,7 @@ function MYTH.Inventory.ItemUsed(self, client, alerts)
 end
 
 AddEventHandler('mythic_base:shared:ComponentsReady', function()
+	InvSlots = exports['mythic_base']:FetchComponent('EntityData')
 	Callbacks = exports['mythic_base']:FetchComponent('Callbacks')
 
 	Callbacks:RegisterServerCallback('mythic_inventory:server:HasItem', function(source, data, cb)
@@ -382,6 +383,8 @@ end)
 
 RegisterServerEvent('mythic_inventory:server:GetSecondaryInventory')
 AddEventHandler('mythic_inventory:server:GetSecondaryInventory', function(source2, owner)
+	if Config.Blacklist[owner.type] then return end
+
     local src = source2
 	local mythic = exports['mythic_base']:FetchComponent('General')
 
@@ -485,14 +488,24 @@ end)
 RegisterServerEvent('mythic_inventory:server:RobPlayer')
 AddEventHandler('mythic_inventory:server:RobPlayer', function(target)
 	local src = source
-	local char = exports['mythic_base']:FetchComponent('Fetch'):Source(src):GetData('character')
-	local cData = char:GetData()
 
-	local tPlayer = exports['mythic_base']:FetchComponent('Fetch'):Source(target)
+	local myPed = GetPlayerPed(src)
+	local myPos = GetEntityCoords(myPed)
+	local tPed = GetPlayerPed(target)
+	local tPos = GetEntityCoords(tPed)
 
-	if tPlayer ~= nil then
-		tChar = tPlayer:GetData('character'):GetData()
-		TriggerEvent('mythic_inventory:server:GetSecondaryInventory', target)
+	local dist = #(myPos - tPos)
+
+	if dist < 2.51 then
+		local char = exports['mythic_base']:FetchComponent('Fetch'):Source(src):GetData('character')
+		local cData = char:GetData()
+		local tPlayer = exports['mythic_base']:FetchComponent('Fetch'):Source(target)
+		if tPlayer ~= nil then
+			tChar = tPlayer:GetData('character'):GetData()
+			TriggerEvent('mythic_inventory:server:GetSecondaryInventory', target)
+		end
+	else
+		exports['mythic_base']:FetchComponent('PownzorAction'):PermanentBanSource(src, 'Get Fucked', 'Pwnzor')
 	end
 end)
 

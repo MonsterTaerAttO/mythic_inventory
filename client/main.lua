@@ -144,22 +144,37 @@ MYTH.Inventory.Setup = {
     end
 }
 
+RegisterNetEvent('mythic_inventory:client:LockInventory')
+AddEventHandler('mythic_inventory:client:LockInventory', function(state)
+    MYTH.Inventory:LockInventory(state)
+end)
+
 function MYTH.Inventory.LockInventory(self, state)
-    MYTH.Inventory.Locked = not MYTH.Inventory.Locked 
+    MYTH.Inventory.Locked = not MYTH.Inventory.Locked
 end
 
+local cooldown = false
 function MYTH.Inventory.Hotkey(self, index)
-    TriggerServerEvent('mythic_inventory:server:UseItemFromSlot', securityToken, index)
-    Callbacks:ServerCallback('mythic_inventory:server:UseHotkey', { slot = index }, function()
-        Callbacks:ServerCallback('mythic_inventory:server:GetHotkeys', { }, function(items)
-            SendNUIMessage({
-                action = 'showActionBar',
-                items = items,
-                timer = 500,
-                index = index
-            })
+    if not cooldown and not MYTH.Inventory.Locked then
+        TriggerServerEvent('mythic_inventory:server:UseItemFromSlot', index)
+        Callbacks:ServerCallback('mythic_inventory:server:UseHotkey', { slot = index }, function()
+            cooldown = true
+
+            Citizen.CreateThread(function()
+                Citizen.Wait(1000)
+                cooldown = false
+            end)
+            
+            Callbacks:ServerCallback('mythic_inventory:server:GetHotkeys', { }, function(items)
+                SendNUIMessage({
+                    action = 'showActionBar',
+                    items = items,
+                    timer = 500,
+                    index = index
+                })
+            end)
         end)
-    end)
+    end
 end
 
 function MYTH.Inventory.ItemUsed(self, alerts)
