@@ -413,12 +413,6 @@ AddEventHandler('mythic_base:client:Logout', function()
     isLoggedIn = false
 end)
 
-Citizen.CreateThread(function()
-    Citizen.Wait(100)
-    isLoggedIn = true
-    MYTH.Inventory.Setup:Startup()
-end)
-
 RegisterNetEvent('mythic_base:client:CharacterSpawned')
 AddEventHandler('mythic_base:client:CharacterSpawned', function()
     isLoggedIn = true
