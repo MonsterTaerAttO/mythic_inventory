@@ -52,10 +52,20 @@ window.addEventListener("message", function (event) {
         case 'setItems':
             firstTier = event.data.invTier;
             inventorySetup(event.data.invOwner, event.data.itemList);
+
+            if ($('#search').val() !== '') {
+                SearchInventory($('#search').val());
+            }
+
             break;
         case 'setSecondInventoryItems':
             secondTier = event.data.invTier;
             secondInventorySetup(event.data.invOwner, event.data.itemList);
+
+            if ($('#search').val() !== '') {
+                SearchInventory($('#search').val());
+            }
+
             break;
         case 'setInfoText':
             $(".info-div").html(event.data.text);
@@ -291,8 +301,16 @@ $(document).ready(function () {
 
     });
 
-    $('.close-ui').click(function (event, ui) {
+    $('#close').click(function (event, ui) {
         closeInventory();
+    });
+
+    $('.toggle-log').click(function (event, ui) {
+        if ($('.inv-log').is(':visible')) {
+            $('.inv-log').fadeOut('normal');
+        } else {
+            $('.inv-log').fadeIn('normal');
+        }
     });
 
     $('#use').click(function (event, ui) {
@@ -900,7 +918,7 @@ function ActionBar(items, timer) {
                 $('#action-bar').hide('slide', { direction: 'down' }, 500, function() {
                     $('#action-bar .slot.expired').remove();
                 });
-            }, timer == null ? 1000000000 : timer);
+            }, timer == null ? 2000 : timer);
         }
     } else {
         $('#action-bar').html('');
@@ -920,7 +938,7 @@ function ActionBar(items, timer) {
                 $('#action-bar').hide('slide', { direction: 'down' }, 500, function() {
                     $('#action-bar .slot.expired').remove();
                 });
-            }, timer == null ? 100000 : timer);
+            }, timer == null ? 2000 : timer);
         });
     }
 }

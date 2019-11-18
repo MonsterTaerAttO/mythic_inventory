@@ -144,22 +144,37 @@ MYTH.Inventory.Setup = {
     end
 }
 
+RegisterNetEvent('mythic_inventory:client:LockInventory')
+AddEventHandler('mythic_inventory:client:LockInventory', function(state)
+    MYTH.Inventory:LockInventory(state)
+end)
+
 function MYTH.Inventory.LockInventory(self, state)
-    MYTH.Inventory.Locked = not MYTH.Inventory.Locked 
+    MYTH.Inventory.Locked = not MYTH.Inventory.Locked
 end
 
+local cooldown = false
 function MYTH.Inventory.Hotkey(self, index)
-    TriggerServerEvent('mythic_inventory:server:UseItemFromSlot', securityToken, index)
-    Callbacks:ServerCallback('mythic_inventory:server:UseHotkey', { slot = index }, function()
-        Callbacks:ServerCallback('mythic_inventory:server:GetHotkeys', { }, function(items)
-            SendNUIMessage({
-                action = 'showActionBar',
-                items = items,
-                timer = 500,
-                index = index
-            })
+    if not cooldown and not MYTH.Inventory.Locked then
+        TriggerServerEvent('mythic_inventory:server:UseItemFromSlot', index)
+        Callbacks:ServerCallback('mythic_inventory:server:UseHotkey', { slot = index }, function()
+            cooldown = true
+
+            Citizen.CreateThread(function()
+                Citizen.Wait(1000)
+                cooldown = false
+            end)
+            
+            Callbacks:ServerCallback('mythic_inventory:server:GetHotkeys', { }, function(items)
+                SendNUIMessage({
+                    action = 'showActionBar',
+                    items = items,
+                    timer = 500,
+                    index = index
+                })
+            end)
         end)
-    end)
+    end
 end
 
 function MYTH.Inventory.ItemUsed(self, alerts)
@@ -180,7 +195,7 @@ Citizen.CreateThread(function()
 
             if dist < 2 then
                 if IsControlJustReleased(0, 51) then
-                    TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId(-1)), { type = 18, owner = '1' })
+                    TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId()), { type = 18, owner = '1' })
                 end
             end
         end
@@ -248,7 +263,7 @@ MYTH.Inventory.Load = {
             secondaryInventory = secondary
         end
 
-        TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId(-1)), secondaryInventory)
+        TriggerServerEvent('mythic_inventory:server:GetSecondaryInventory', GetPlayerServerId(PlayerId()), secondaryInventory)
     end
 }
 
@@ -260,11 +275,16 @@ MYTH.Inventory.Open = {
             action = "display",
             type = "normal"
         })
+
+        TransitionToBlurred(1000)
+
         SetNuiFocus(true, true)
     end,
     Secondary = function(self)
         MYTH.Inventory.Load:Personal()
         isInInventory = true
+
+        TransitionToBlurred(1000)
     
         SendNUIMessage({
             action = "display",
@@ -280,6 +300,9 @@ MYTH.Inventory.Close = {
         openCooldown = true
         isInInventory = false
         secondaryInventory = nil
+
+        TransitionFromBlurred(1000)
+
         SendNUIMessage({ action = "hide" })
         SetNuiFocus(false, false)
     
@@ -388,12 +411,6 @@ end)
 RegisterNetEvent('mythic_base:client:Logout')
 AddEventHandler('mythic_base:client:Logout', function()
     isLoggedIn = false
-end)
-
-Citizen.CreateThread(function()
-    Citizen.Wait(100)
-    isLoggedIn = true
-    MYTH.Inventory.Setup:Startup()
 end)
 
 RegisterNetEvent('mythic_base:client:CharacterSpawned')

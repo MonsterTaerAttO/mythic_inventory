@@ -33,19 +33,34 @@ body {
             bottom: 1%;
             right: 7.5%;
             text-align: right;
-            box-shadow: 1px 1px 57px rgba(0, 0, 0, .4);
-            background-color: $inv-background;
+            // box-shadow: 1px 1px 57px rgba(0, 0, 0, .4);
+            // background-color: $inv-background;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             padding: 10px;
             color: $accent;
             font-size: 10px;
+            display: none;
         }
         
         .close-ui {
             padding: 25px;
             float: right;
+            font-size: 35px;
+            color: $primary;
+        
+            &:hover {
+                filter: brightness(0.75);
+                transition: all ease-in 0.15s;
+            }
+        }
+
+        .toggle-log {
+            padding: 25px;
+            position: absolute;
+            bottom: 5%;
+            right: 5%;
             font-size: 35px;
             color: $primary;
         
@@ -66,8 +81,8 @@ body {
             top: 0;
             bottom: 0;
             margin: auto;
-            box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 57px;
-            background-color: $inv-background;
+            // box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 57px;
+            // background-color: $inv-background;
         
             .inventory-wrapper {
                 display: inline-block;
@@ -201,6 +216,16 @@ body {
                         background-color: $slot;
                         border: 1px solid $border;
                         position: relative;
+
+                        &#close {
+                            background-color: $slot-error;
+                            margin-top: 40px !important;
+
+                            &:hover {
+                                transition: all ease-in 0.15s;
+                                filter: brightness(60%);
+                            }
+                        }
 
                         &::placeholder {
                             color: $accent;
