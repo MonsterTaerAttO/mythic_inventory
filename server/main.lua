@@ -177,15 +177,15 @@ AddEventHandler('mythic_inventory:server:MoveToEmpty', function(originOwner, ori
 	
 							if destinationOwner.type == 1 then
 								if destinationOwner.owner == char:GetData('id') then
-									TriggerClientEvent("mythic_inventory:client:AddWeapon", mPlayer:GetData('source'), destinationItem.itemId)
-									TriggerClientEvent('mythic_base:client:AddComponentFromItem', mPlayer:GetData('source'), GetHashKey(destinationItem.itemId), destinationItem.metadata.components)
+									--TriggerClientEvent("mythic_inventory:client:AddWeapon", mPlayer:GetData('source'), destinationItem.itemId)
+									--TriggerClientEvent('mythic_base:client:AddComponentFromItem', mPlayer:GetData('source'), GetHashKey(destinationItem.itemId), destinationItem.metadata.components)
 								else
 									exports['ghmattimysql']:scalar('SELECT user FROM characters WHERE id = @charid LIMIT 1', { ['charid'] = tonumber(destinationOwner.owner) }, function(res)
 										if res ~= nil then
 											local tPlayer = exports['mythic_base']:FetchComponent('Fetch'):UserId(res)
 											if tPlayer ~= nil then
-												TriggerClientEvent("mythic_inventory:client:AddWeapon", tPlayer:GetData('source'), destinationItem.itemId)
-												TriggerClientEvent('mythic_base:client:AddComponentFromItem', tPlayer:GetData('source'), GetHashKey(destinationItem.itemId), destinationItem.metadata.components)
+												--TriggerClientEvent("mythic_inventory:client:AddWeapon", tPlayer:GetData('source'), destinationItem.itemId)
+												--TriggerClientEvent('mythic_base:client:AddComponentFromItem', tPlayer:GetData('source'), GetHashKey(destinationItem.itemId), destinationItem.metadata.components)
 											end
 										end
 									end)
@@ -313,8 +313,8 @@ AddEventHandler('mythic_inventory:server:SwapItems', function(originOwner, origi
 								TriggerClientEvent("mythic_inventory:client:RemoveWeapon", tPlayer:GetData('source'), destinationItem.itemId)
 							end
 							if originItem.type == 1 then
-								TriggerClientEvent("mythic_inventory:client:AddWeapon", tPlayer:GetData('source'), originItem.itemId)
-								TriggerClientEvent('mythic_base:client:AddComponentFromItem', tPlayer:GetData('source'), originItem.itemId, originItem.metadata.components)
+								--TriggerClientEvent("mythic_inventory:client:AddWeapon", tPlayer:GetData('source'), originItem.itemId)
+								--TriggerClientEvent('mythic_base:client:AddComponentFromItem', tPlayer:GetData('source'), originItem.itemId, originItem.metadata.components)
 							end
 						end
 					end)
@@ -328,8 +328,8 @@ AddEventHandler('mythic_inventory:server:SwapItems', function(originOwner, origi
 								TriggerClientEvent("mythic_inventory:client:RemoveWeapon", tPlayer:GetData('source'), originItem.itemId)
 							end
 							if destinationItem.type == 1 then
-								TriggerClientEvent("mythic_inventory:client:AddWeapon", tPlayer:GetData('source'), destinationItem.itemId)
-								TriggerClientEvent('mythic_base:client:AddComponentFromItem', tPlayer:GetData('source'), destinationItem.itemId, destinationItem.metadata.components)
+								--TriggerClientEvent("mythic_inventory:client:AddWeapon", tPlayer:GetData('source'), destinationItem.itemId)
+								--TriggerClientEvent('mythic_base:client:AddComponentFromItem', tPlayer:GetData('source'), destinationItem.itemId, destinationItem.metadata.components)
 							end
 						end
 					end)

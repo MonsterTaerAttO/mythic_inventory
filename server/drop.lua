@@ -76,7 +76,7 @@ end)
 
 RegisterServerEvent('mythic_inventory:server:Drop')
 AddEventHandler('mythic_inventory:server:Drop', function(item, count, coords)
-    ProcessDrop(source, item, count, coords)
+    MYTH.Inventory.Drops:Process(source, item, count, coords)
 end)
 
 RegisterServerEvent('mythic_inventory:server:RemoveBag')
