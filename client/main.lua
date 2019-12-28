@@ -369,17 +369,82 @@ AddEventHandler("mythic_inventory:client:RemoveWeapon", function(weapon)
     MYTH.Inventory.Weapons:Remove(weapon)
 end)
 
+function loadAnimDict(dict)
+	while (not HasAnimDictLoaded(dict)) do
+		RequestAnimDict(dict)
+		Citizen.Wait(5)
+	end
+end
+
 RegisterNetEvent("mythic_inventory:client:AddWeapon")
 AddEventHandler("mythic_inventory:client:AddWeapon", function(weapon)
-    MYTH.Inventory.Weapons:Add(weapon)
+    local player = PlayerPedId()
+    local pos = GetEntityCoords(player, true)
+    local rot = GetEntityHeading(player)
+    local currWeapon = GetSelectedPedWeapon(player)
+
+    loadAnimDict( "reaction@intimidation@1h" )
+
+    print(currWeapon, GetHashKey(weapon), currWeapon == GetHashKey(weapon))
+    if currWeapon == GetHashKey(weapon) then
+        MYTH.Inventory.Weapons:DisableFire()
+        TaskPlayAnimAdvanced(player, "reaction@intimidation@1h", "outro", GetEntityCoords(player, true), 0, 0, rot, 8.0, 3.0, -1, 50, 0, 0, 0)
+        Citizen.Wait(1600)
+        MYTH.Inventory.Weapons:RemoveAll()
+        ClearPedTasks(player)
+        MYTH.Inventory.Weapons:EnableFire()
+    else
+        if currWeapon == `WEAPON_UNARMED` then
+            MYTH.Inventory.Weapons:DisableFire()
+            TaskPlayAnimAdvanced(player, "reaction@intimidation@1h", "intro", GetEntityCoords(player, true), 0, 0, rot, 8.0, 3.0, -1, 50, 0, 0, 0)
+            Citizen.Wait(1000)
+            MYTH.Inventory.Weapons:Add(weapon)
+            Citizen.Wait(2000)
+            ClearPedTasks(player)
+            MYTH.Inventory.Weapons:EnableFire()
+        else
+            MYTH.Inventory.Weapons:DisableFire()
+            TaskPlayAnimAdvanced(player, "reaction@intimidation@1h", "outro", GetEntityCoords(player, true), 0, 0, rot, 8.0, 3.0, -1, 50, 0, 0, 0)
+            Citizen.Wait(1500)
+            MYTH.Inventory.Weapons:RemoveAll()
+            --ClearPedTasks(player)
+            TaskPlayAnimAdvanced(player, "reaction@intimidation@1h", "intro", GetEntityCoords(player, true), 0, 0, rot, 8.0, 3.0, -1, 50, 0, 0, 0)
+            Citizen.Wait(1000)
+            MYTH.Inventory.Weapons:Add(weapon)
+            Citizen.Wait(2000)
+            ClearPedTasks(player)
+            MYTH.Inventory.Weapons:EnableFire()
+        end
+    end
 end)
 
+local canFire = true
 MYTH.Inventory.Weapons = {
     Add = function(self, weapon)
-        --GiveWeaponToPed(PlayerPedId(), weapon, 0, false, false)
+        GiveWeaponToPed(PlayerPedId(), weapon, 0, false, true)
     end,
     Remove = function(self, weapon)
-        --RemoveWeaponFromPed(PlayerPedId(), weapon)
+        RemoveWeaponFromPed(PlayerPedId(), weapon)
+    end,
+    RemoveAll = function(self)
+        RemoveAllPedWeapons(PlayerPedId(), false)
+    end,
+    DisableFire = function(self)
+        if canFire then
+            Citizen.CreateThread(function()
+                canFire = false
+                while not canFire do
+                    Citizen.Wait(0)
+                    if not canFire then
+                        DisableControlAction(0, 25, true)
+                        DisablePlayerFiring(player, true)
+                    end
+                end
+            end)
+        end
+    end,
+    EnableFire = function(self)
+        canFire = true
     end
 }
 

@@ -430,7 +430,7 @@ $(document).ready(function () {
             }
 
             $('.tooltip-div').find('.tooltip-meta').html('');
-            if(itemData.type === 1 || itemData.itemId === 'license') {
+            if(itemData.metadata != null) {
                 if(itemData.type === 1) {
                     $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">Registered Owner</div> : <div class="meta-val">${itemData.metadata.owner}</div></div>`);
                 } else if(itemData.itemId === 'license') {
@@ -448,6 +448,8 @@ $(document).ready(function () {
                     if (itemData.description != null && itemData.description != '') {
                         $('.tooltip-div').find('.tooltip-meta').append(`<hr /><div class="meta-desc">${itemData.description}</div>`);
                     } 
+                } else if(itemData.metadata.app !== undefined) {
+                    $('.tooltip-div').find('.tooltip-meta').append(`<div class="meta-entry"><div class="meta-key">App Package</div> : <div class="meta-val">${itemData.metadata.app}</div></div>`);
                 }
             } else {
                 if (itemData.description != null && itemData.description != '') {

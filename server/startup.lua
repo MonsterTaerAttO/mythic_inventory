@@ -17,6 +17,22 @@ InvSlots = {--[[
 	['pd-trash'] = { slots = 1000, label = 'Trash Locker' },
 ]]}
 
+AddEventHandler('mythic_base:shared:ComponentsReady', function()
+	local weapons = exports['mythic_base']:FetchComponent('WeaponData')
+
+	for k, v in ipairs(weapons) do
+		TriggerEvent('mythic_base:server:RegisterUsableItem', v, function(source, item)
+			-- TriggerEvent('mythic_phone:server:StartInstallApp', source, item)
+			local char = exports['mythic_base']:FetchComponent('Fetch'):Source(source):GetData('character')
+		
+			if item.slot <= 5 then
+				print(item.weapon)
+				TriggerClientEvent('mythic_inventory:client:AddWeapon', source, item.weapon)
+			end
+		end)
+	end
+end)
+
 Citizen.CreateThread(function()
     Citizen.Wait(1000)
     exports['ghmattimysql']:execute('DELETE FROM inventory_items WHERE type IN (0, 2, 3, 6, 7, 8, 9)')
